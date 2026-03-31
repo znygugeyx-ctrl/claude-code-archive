@@ -1756,3 +1756,11 @@ export function setPromptId(id: string | null): void {
   STATE.promptId = id
 }
 
+
+let _isReplBridgeActive = false
+export function isReplBridgeActive(): boolean {
+  return _isReplBridgeActive
+}
+export function setIsReplBridgeActive(value: boolean): void {
+  _isReplBridgeActive = value
+}

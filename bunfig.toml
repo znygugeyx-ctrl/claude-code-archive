@@ -1,0 +1,11 @@
+[install]
+registry = "https://registry.npmjs.org"
+
+[bundle.alias]
+"bun:bundle" = "./src/bun-bundle-stub.ts"
+"color-diff-napi" = "./src/native-ts/color-diff/index.ts"
+"@ant/claude-for-chrome-mcp" = "./stubs/claude-for-chrome-mcp.ts"
+"@ant/computer-use-mcp" = "./stubs/computer-use-mcp.ts"
+"@ant/computer-use-mcp/sentinelApps" = "./stubs/computer-use-mcp.ts"
+"@ant/computer-use-mcp/types" = "./stubs/computer-use-mcp.ts"
+"@ant/computer-use-swift" = "./stubs/computer-use-swift.ts"
