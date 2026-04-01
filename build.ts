@@ -2,57 +2,94 @@
 /**
  * build.ts — Claude Code CLI 构建脚本
  *
- * 使用 bun build CLI（读取 bunfig.toml 的 bundle.alias）而非 Bun.build() API，
- * 确保本地和 CI 行为一致。增加：
+ * 使用 Bun.build() API + 显式 alias plugin（不依赖 bunfig.toml）。
  * - 构建前清理 dist/
+ * - Module alias 解析（内部包 → 本地 stub）
  * - Node.js createRequire 兼容补丁
- * - 错误报告和构建耗时
  */
 import { rmSync, readdirSync, readFileSync, writeFileSync } from "fs";
-import { join } from "path";
-import { spawnSync } from "child_process";
+import { join, resolve } from "path";
+import type { BunPlugin } from "bun";
 
 const ROOT = import.meta.dir;
 const DIST = join(ROOT, "dist");
+const ENTRY = join(ROOT, "src/entrypoints/cli.tsx");
+
+// ── Module aliases (mirrors bunfig.toml [bundle.alias]) ──────
+const aliases: Record<string, string> = {
+  "bun:bundle":                    "./src/bun-bundle-stub.ts",
+  "color-diff-napi":               "./src/native-ts/color-diff/index.ts",
+  "@ant/claude-for-chrome-mcp":    "./stubs/claude-for-chrome-mcp.ts",
+  "@ant/computer-use-mcp":         "./stubs/computer-use-mcp.ts",
+  "@ant/computer-use-mcp/sentinelApps": "./stubs/computer-use-mcp.ts",
+  "@ant/computer-use-mcp/types":   "./stubs/computer-use-mcp.ts",
+  "@ant/computer-use-swift":       "./stubs/computer-use-swift.ts",
+  "modifiers-napi":                "./stubs/modifiers-napi.ts",
+};
+
+const aliasPlugin: BunPlugin = {
+  name: "alias-resolver",
+  setup(build) {
+    for (const [name, target] of Object.entries(aliases)) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      build.onResolve({ filter: new RegExp(`^${escaped}$`) }, () => ({
+        path: resolve(ROOT, target),
+      }));
+    }
+  },
+};
 
 // ── Clean ────────────────────────────────────────────────────
 console.log("Cleaning dist/...");
 rmSync(DIST, { recursive: true, force: true });
 
-// ── Build via CLI (reads bunfig.toml aliases) ────────────────
+// ── Define macros ────────────────────────────────────────────
+const define: Record<string, string> = {
+  "MACRO.VERSION": '"2.1.7-source"',
+  "MACRO.PACKAGE_URL": '"@anthropic-ai/claude-code"',
+  "MACRO.FEEDBACK_CHANNEL": '"#claude-code-feedback"',
+  "MACRO.BUILD_TIME": '""',
+  "MACRO.ISSUES_EXPLAINER":
+    '"report issues at https://github.com/anthropics/claude-code/issues"',
+  "process.env.USER_TYPE": '"external"',
+};
+
+// ── External packages ────────────────────────────────────────
+const external: string[] = [
+  "bun:ffi",
+  "@anthropic-ai/foundry-sdk",
+  "@azure/identity",
+  "sharp",
+  "@opentelemetry/exporter-metrics-otlp-grpc",
+  "@opentelemetry/exporter-metrics-otlp-http",
+  "@opentelemetry/exporter-metrics-otlp-proto",
+  "@opentelemetry/exporter-prometheus",
+  "@opentelemetry/exporter-logs-otlp-grpc",
+  "@opentelemetry/exporter-logs-otlp-http",
+  "@opentelemetry/exporter-logs-otlp-proto",
+  "@opentelemetry/exporter-trace-otlp-grpc",
+  "@opentelemetry/exporter-trace-otlp-http",
+  "@opentelemetry/exporter-trace-otlp-proto",
+];
+
+// ── Build ────────────────────────────────────────────────────
 console.log("Building...");
 const startTime = performance.now();
 
-const args = [
-  "build", "src/entrypoints/cli.tsx",
-  "--outdir", "dist",
-  "--target", "bun",
-  "--define", 'MACRO.VERSION="2.1.7-source"',
-  "--define", 'MACRO.PACKAGE_URL="@anthropic-ai/claude-code"',
-  "--define", 'MACRO.FEEDBACK_CHANNEL="#claude-code-feedback"',
-  "--define", 'MACRO.BUILD_TIME=""',
-  "--define", 'MACRO.ISSUES_EXPLAINER="report issues at https://github.com/anthropics/claude-code/issues"',
-  "--define", 'process.env.USER_TYPE="external"',
-  "--external", "bun:ffi",
-  "--external", "@anthropic-ai/foundry-sdk",
-  "--external", "@azure/identity",
-  "--external", "sharp",
-  "--external", "@opentelemetry/exporter-metrics-otlp-grpc",
-  "--external", "@opentelemetry/exporter-metrics-otlp-http",
-  "--external", "@opentelemetry/exporter-metrics-otlp-proto",
-  "--external", "@opentelemetry/exporter-prometheus",
-  "--external", "@opentelemetry/exporter-logs-otlp-grpc",
-  "--external", "@opentelemetry/exporter-logs-otlp-http",
-  "--external", "@opentelemetry/exporter-logs-otlp-proto",
-  "--external", "@opentelemetry/exporter-trace-otlp-grpc",
-  "--external", "@opentelemetry/exporter-trace-otlp-http",
-  "--external", "@opentelemetry/exporter-trace-otlp-proto",
-];
+const result = await Bun.build({
+  entrypoints: [ENTRY],
+  outdir: DIST,
+  target: "bun",
+  define,
+  external,
+  plugins: [aliasPlugin],
+});
 
-const result = spawnSync("bun", args, { cwd: ROOT, stdio: "inherit" });
-
-if (result.status !== 0) {
-  console.error("Build failed");
+if (!result.success) {
+  console.error("Build failed:");
+  for (const log of result.logs) {
+    console.error("  ", log);
+  }
   process.exit(1);
 }
 
@@ -77,4 +114,4 @@ try {
 }
 
 const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-console.log(`Build complete in ${elapsed}s${patched > 0 ? `, ${patched} patched for Node.js compat` : ""}`);
+console.log(`Build complete in ${elapsed}s — ${result.outputs.length} file(s)${patched > 0 ? `, ${patched} patched for Node.js compat` : ""}`);

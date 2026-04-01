@@ -1,6 +1,7 @@
 export const bindSessionContext = () => {}
 export const DEFAULT_GRANT_FLAGS = {}
 export const buildComputerUseTools = () => []
+export const createComputerUseMcpServer = () => ({})
 export const API_RESIZE_PARAMS = {}
 export const targetImageSize = () => ({})
 export const getSentinelCategory = () => null
