@@ -3,6 +3,7 @@ import { roll, companionUserId, getCompanion } from '../../buddy/companion.js'
 import { renderSprite } from '../../buddy/sprites.js'
 import { RARITY_STARS } from '../../buddy/types.js'
 import type { Species } from '../../buddy/types.js'
+import type { Command } from '../../types/command.js'
 
 // Name pools per species (5 names each)
 const NAMES: Record<Species, string[]> = {
@@ -52,79 +53,95 @@ function pickByIndex<T>(arr: T[], index: number): T {
   return arr[Math.abs(index) % arr.length]!
 }
 
-export async function buddyCommand(args: string[]): Promise<string> {
-  const subcommand = args[0]?.toLowerCase()
+const buddy = {
+  type: 'local',
+  name: 'buddy',
+  description: 'Meet your companion',
+  supportsNonInteractive: false,
+  load: () =>
+    Promise.resolve({
+      async call(args: string) {
+        const subcommand = args.trim().toLowerCase()
 
-  // /buddy pet
-  if (subcommand === 'pet') {
-    const companion = getCompanion()
-    if (!companion) {
-      return "You don't have a companion yet! Run /buddy to hatch one."
-    }
-    return [
-      `You pet ${companion.name}... 🐾`,
-      '',
-      '  ♡  ♡  ♡',
-      ` ${companion.name} loves the attention!`,
-    ].join('\n')
-  }
+        // /buddy pet
+        if (subcommand === 'pet') {
+          const companion = getCompanion()
+          if (!companion) {
+            return { type: 'text' as const, value: "You don't have a companion yet! Run /buddy to hatch one." }
+          }
+          return {
+            type: 'text' as const,
+            value: [`You pet ${companion.name}... 🐾`, '', '  ♡  ♡  ♡', ` ${companion.name} loves the attention!`].join('\n'),
+          }
+        }
 
-  // Check if companion already exists
-  const existing = getCompanion()
+        // /buddy mute / unmute
+        if (subcommand === 'mute') {
+          saveGlobalConfig(c => ({ ...c, companionMuted: true }))
+          const companion = getCompanion()
+          return { type: 'text' as const, value: companion ? `${companion.name} goes quiet. (/buddy unmute to restore)` : 'Companion muted.' }
+        }
+        if (subcommand === 'unmute') {
+          saveGlobalConfig(c => ({ ...c, companionMuted: false }))
+          const companion = getCompanion()
+          return { type: 'text' as const, value: companion ? `${companion.name} is listening again!` : 'Companion unmuted.' }
+        }
 
-  if (existing) {
-    // Show companion card
-    const sprite = renderSprite(existing, 0)
-    const stars = RARITY_STARS[existing.rarity]
-    const statLines = Object.entries(existing.stats).map(
-      ([k, v]) => `  ${k.padEnd(10)} ${'█'.repeat(Math.floor((v as number) / 10))}${'░'.repeat(10 - Math.floor((v as number) / 10))} ${v}`,
-    )
-    return [
-      ...sprite,
-      '',
-      `  ${existing.name}  ${stars}  [${existing.rarity.toUpperCase()}]`,
-      `  ${existing.species}  •  ${existing.personality}`,
-      `  Hatched: ${new Date(existing.hatchedAt).toLocaleDateString()}`,
-      '',
-      ...statLines,
-      '',
-      'Tip: /buddy pet to show some love',
-    ].join('\n')
-  }
+        // Already has a companion — show info
+        const existing = getCompanion()
+        if (existing) {
+          const sprite = renderSprite(existing, 0)
+          const stars = RARITY_STARS[existing.rarity]
+          const statLines = Object.entries(existing.stats).map(
+            ([k, v]) => `  ${k.padEnd(10)} ${'█'.repeat(Math.floor((v as number) / 10))}${'░'.repeat(10 - Math.floor((v as number) / 10))} ${v}`,
+          )
+          return {
+            type: 'text' as const,
+            value: [
+              ...sprite,
+              '',
+              `  ${existing.name}  ${stars}  [${existing.rarity.toUpperCase()}]`,
+              `  ${existing.species}  •  ${existing.personality}`,
+              `  Hatched: ${new Date(existing.hatchedAt).toLocaleDateString()}`,
+              '',
+              ...statLines,
+              '',
+              'Tip: /buddy pet to show some love',
+            ].join('\n'),
+          }
+        }
 
-  // Hatch a new companion
-  const userId = companionUserId()
-  const { bones, inspirationSeed } = roll(userId)
+        // Hatch a new companion
+        const userId = companionUserId()
+        const { bones, inspirationSeed } = roll(userId)
+        const name = pickByIndex(NAMES[bones.species], inspirationSeed)
+        const personality = pickByIndex(PERSONALITIES[bones.species], inspirationSeed + 1)
 
-  const speciesNames = NAMES[bones.species]
-  const speciesPersonalities = PERSONALITIES[bones.species]
-  const name = pickByIndex(speciesNames, inspirationSeed)
-  const personality = pickByIndex(speciesPersonalities, inspirationSeed + 1)
+        saveGlobalConfig(prev => ({
+          ...prev,
+          companion: { name, personality, hatchedAt: Date.now() },
+        }))
 
-  saveGlobalConfig((prev) => ({
-    ...prev,
-    companion: {
-      name,
-      personality,
-      hatchedAt: Date.now(),
-    },
-  }))
+        const stars = RARITY_STARS[bones.rarity]
+        const sprite = renderSprite(bones, 0)
 
-  const stars = RARITY_STARS[bones.rarity]
-  const sprite = renderSprite(bones, 0)
+        return {
+          type: 'text' as const,
+          value: [
+            '🥚  *crack*  🐣',
+            '',
+            ...sprite,
+            '',
+            '  A wild companion has hatched!',
+            `  ${name}  ${stars}  [${bones.rarity.toUpperCase()}]`,
+            `  Species: ${bones.species}`,
+            `  Personality: ${personality}`,
+            '',
+            'Run /buddy to see your companion anytime.',
+          ].join('\n'),
+        }
+      },
+    }),
+} satisfies Command
 
-  return [
-    '🥚  *crack*  🐣',
-    '',
-    ...sprite,
-    '',
-    `  A wild companion has hatched!`,
-    `  ${name}  ${stars}  [${bones.rarity.toUpperCase()}]`,
-    `  Species: ${bones.species}`,
-    `  Personality: ${personality}`,
-    '',
-    'Run /buddy to see your companion anytime.',
-  ].join('\n')
-}
-
-export default buddyCommand
+export default buddy
