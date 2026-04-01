@@ -1,4 +1,4 @@
-// Polyfill for bun:bundle - feature() always returns false in external builds
-export function feature(_name: string): false {
-  return false
+// Polyfill for bun:bundle - BUDDY feature enabled for April 1st easter egg
+export function feature(name: string): boolean {
+  return name === 'BUDDY'
 }

@@ -131,3 +131,28 @@ export function getCompanion(): Companion | undefined {
   // bones last so stale bones fields in old-format configs get overridden
   return { ...stored, ...bones }
 }
+
+import type { Message } from '../types/message.js'
+
+const REACTIONS = ['✨', '🤔', '👀', '💡', '🎉', '😮', '🐾']
+
+export function fireCompanionObserver(
+  messages: Message[],
+  onReaction: (reaction: string) => void,
+): void {
+  const recent = messages.slice(-3)
+  const text = recent
+    .map(m => {
+      const c = (m as any).content
+      if (typeof c === 'string') return c
+      if (Array.isArray(c)) return c.filter((b: any) => b.type === 'text').map((b: any) => b.text).join(' ')
+      return ''
+    })
+    .join(' ')
+    .toLowerCase()
+  let r = REACTIONS[Math.floor(Math.random() * REACTIONS.length)]!
+  if (text.includes('error') || text.includes('fail')) r = '😮'
+  else if (text.includes('done') || text.includes('success')) r = '🎉'
+  else if (text.includes('?')) r = '🤔'
+  onReaction(r)
+}
