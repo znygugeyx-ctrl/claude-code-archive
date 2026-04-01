@@ -1,0 +1,141 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": ["**", "!**/dist/", "!**/stubs/", "!**/analysis/", "!**/node_modules/", "!**/tmp/"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "assist": { "actions": { "source": { "organizeImports": "off" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "complexity": {
+        "noForEach": "off",
+        "noUselessSwitchCase": "off",
+        "noExtraBooleanCast": "off",
+        "useLiteralKeys": "off",
+        "useOptionalChain": "off",
+        "noUselessFragments": "off",
+        "noUselessConstructor": "off",
+        "noUselessRename": "off",
+        "noUselessTernary": "off",
+        "noUselessTypeConstraint": "off",
+        "noUselessCatch": "off",
+        "noUselessEmptyExport": "off",
+        "noUselessLoneBlockStatements": "off",
+        "noUselessLabel": "off",
+        "noVoid": "off",
+        "useArrowFunction": "off",
+        "useFlatMap": "off",
+        "noUselessContinue": "off",
+        "noArguments": "off",
+        "noCommaOperator": "off"
+      },
+      "correctness": {
+        "noUnusedVariables": "warn",
+        "noUnusedImports": "warn",
+        "noUnusedFunctionParameters": "off",
+        "noUnusedPrivateClassMembers": "off",
+        "noSwitchDeclarations": "off",
+        "noEmptyPattern": "off",
+        "noInnerDeclarations": "off",
+        "noSelfAssign": "off",
+        "noConstantCondition": "off",
+        "noVoidTypeReturn": "off",
+        "useExhaustiveDependencies": "off",
+        "useHookAtTopLevel": "off",
+        "useValidTypeof": "warn"
+      },
+      "performance": {
+        "noAccumulatingSpread": "off",
+        "noBarrelFile": "off",
+        "noDelete": "off",
+        "noReExportAll": "off"
+      },
+      "style": {
+        "noDefaultExport": "off",
+        "noNonNullAssertion": "off",
+        "noParameterAssign": "off",
+        "noUnusedTemplateLiteral": "off",
+        "noUselessElse": "off",
+        "useBlockStatements": "off",
+        "useCollapsedElseIf": "off",
+        "useConst": "off",
+        "useDefaultParameterLast": "off",
+        "useEnumInitializers": "off",
+        "useExportType": "off",
+        "useFilenamingConvention": "off",
+        "useForOf": "off",
+        "useImportType": "off",
+        "useNamingConvention": "off",
+        "useNodejsImportProtocol": "off",
+        "useNumberNamespace": "off",
+        "useSelfClosingElements": "off",
+        "useExponentiationOperator": "off",
+        "useTemplate": "off"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "off",
+        "noAssignInExpressions": "off",
+        "noAsyncPromiseExecutor": "off",
+        "noConfusingVoidType": "off",
+        "noConfusingLabels": "off",
+        "noConsole": "warn",
+        "noControlCharactersInRegex": "off",
+        "noDoubleEquals": "off",
+        "noDuplicateCase": "warn",
+        "noDuplicateClassMembers": "warn",
+        "noDuplicateObjectKeys": "warn",
+        "noEmptyBlockStatements": "off",
+        "noExplicitAny": "off",
+        "noFallthroughSwitchClause": "off",
+        "noGlobalIsNan": "off",
+        "noImplicitAnyLet": "off",
+        "noPrototypeBuiltins": "off",
+        "noRedeclare": "off",
+        "noShadowRestrictedNames": "off",
+        "noUnsafeDeclarationMerging": "off",
+        "noUnsafeNegation": "off",
+        "useAwait": "off",
+        "useDefaultSwitchClauseLast": "off",
+        "noSelfCompare": "off",
+        "useGetterReturn": "off",
+        "useIsArray": "off",
+        "useIterableCallbackReturn": "off",
+        "noVar": "off"
+      },
+      "a11y": {
+        "noAutofocus": "off",
+        "noStaticElementInteractions": "off"
+      },
+      "nursery": {},
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.tsx"],
+      "formatter": {
+        "lineWidth": 120
+      }
+    },
+    {
+      "includes": ["**/scripts/**", "**/*.js", "**/*.mjs"],
+      "formatter": {
+        "enabled": false
+      }
+    }
+  ]
+}

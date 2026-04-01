@@ -26,11 +26,14 @@
 
 ```bash
 bun install          # 安装依赖
-bun run build        # 构建 src/entrypoints/cli.tsx → dist/cli.js
+bun run build        # 构建 src/entrypoints/cli.tsx → dist/cli.js（via build.ts）
 bun run start        # 运行（默认 CLAUDE_CODE_USE_BEDROCK=1）
+bun run lint         # Biome 代码检查（宽松模式，适配反编译代码）
+bun test             # 运行测试（Bun test runner）
+bun run health       # 项目健康检查仪表盘
 ```
 
-- 构建使用 `bun build`，将多个 Anthropic 内部包标记为 `--external` 并用 stubs 替代
+- 构建使用 `build.ts`（Bun.build API + 代码分割 + Node.js 兼容补丁），将 Anthropic 内部包标记为 external 并用 stubs 替代
 - 构建失败时（缺失模块），运行 `bun run scripts/create-stubs.ts` 自动解析错误并生成 stub 文件
 
 ## 关键目录和文件
@@ -45,6 +48,11 @@ bun run start        # 运行（默认 CLAUDE_CODE_USE_BEDROCK=1）
 | `.claude/commands/sync-upstream.md` | Skill：追踪官方 CHANGELOG 变化并生成同步报告 |
 | `.claude/settings.local.json` | Claude Code 权限配置 + PreToolUse 安全 hook |
 | `SYNC.md` | 官方版本与本地实现的功能差距追踪 |
+| `build.ts` | 构建脚本（define/external/createRequire 补丁） |
+| `biome.json` | Biome 代码检查配置（宽松模式，适配反编译代码） |
+| `scripts/health-check.ts` | 项目健康仪表盘（依赖/构建/测试/lint/hooks） |
+| `.github/workflows/ci.yml` | GitHub Actions CI（lint → test → build） |
+| `.editorconfig` | 跨编辑器格式统一 |
 
 ## 分析文档索引
 
@@ -64,12 +72,22 @@ bun run start        # 运行（默认 CLAUDE_CODE_USE_BEDROCK=1）
 `SYNC.md` 记录官方 Claude Code 每个版本的变更条目及本地实现状态（✅/⚠️/❌/➖）。
 运行 `/sync-upstream` 可检查新版本并自动更新。在开发相关功能前，先查看 SYNC.md 了解当前差距。
 
+## CI/CD
+
+GitHub Actions 在 push/PR 到 main 时自动运行：
+1. `bun install --frozen-lockfile` — 安装依赖
+2. `bun run lint` — Biome 代码检查
+3. `bun test` — 运行测试
+4. `bun run build` — 构建验证
+
+配置文件：`.github/workflows/ci.yml`
+
 ## 安全 Hooks
 
 三层保护机制，均由 `.claude/hooks/security-check.sh` 统一处理：
 
 1. **Claude Code PreToolUse hook**（`.claude/settings.local.json`）— 拦截所有 Bash 调用，检查 git commit（secrets/敏感文件/大文件）、git push（禁止 force push）、git reset --hard
-2. **Git pre-commit hook**（`.git/hooks/pre-commit`）— 扫描 staged diff 中的 secret 模式、敏感文件名、>10MB 文件，保护 archive 分支
+2. **Git pre-commit hook**（`.git/hooks/pre-commit`）— 先运行安全检查（secrets/敏感文件/大文件/archive 保护），再运行 Biome lint 检查 staged .ts/.tsx 文件
 3. **Git pre-push hook**（`.git/hooks/pre-push`）— 保护 archive 分支
 
 脚本使用 `git rev-parse --show-toplevel` 定位仓库根目录，在 worktree 中也能正确工作。

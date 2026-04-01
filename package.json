@@ -3,8 +3,14 @@
   "version": "2.1.7-source",
   "type": "module",
   "scripts": {
-    "build": "bun build src/entrypoints/cli.tsx --outdir dist --target bun --define 'MACRO.VERSION=\"2.1.7-source\"' --define 'MACRO.PACKAGE_URL=\"@anthropic-ai/claude-code\"' --define 'MACRO.FEEDBACK_CHANNEL=\"#claude-code-feedback\"' --define 'MACRO.BUILD_TIME=\"\"' --define 'MACRO.ISSUES_EXPLAINER=\"report issues at https://github.com/anthropics/claude-code/issues\"' --define 'process.env.USER_TYPE=\"external\"' --external bun:ffi --external @anthropic-ai/foundry-sdk --external @azure/identity --external sharp --external '@opentelemetry/exporter-metrics-otlp-grpc' --external '@opentelemetry/exporter-metrics-otlp-http' --external '@opentelemetry/exporter-metrics-otlp-proto' --external '@opentelemetry/exporter-prometheus' --external '@opentelemetry/exporter-logs-otlp-grpc' --external '@opentelemetry/exporter-logs-otlp-http' --external '@opentelemetry/exporter-logs-otlp-proto' --external '@opentelemetry/exporter-trace-otlp-grpc' --external '@opentelemetry/exporter-trace-otlp-http' --external '@opentelemetry/exporter-trace-otlp-proto'",
-    "start": "CLAUDE_CODE_USE_BEDROCK=1 bun dist/cli.js"
+    "build": "bun run build.ts",
+    "start": "CLAUDE_CODE_USE_BEDROCK=1 bun dist/cli.js",
+    "lint": "bunx @biomejs/biome lint ./src",
+    "lint:fix": "bunx @biomejs/biome lint --fix ./src",
+    "format": "bunx @biomejs/biome format ./src",
+    "format:fix": "bunx @biomejs/biome format --fix ./src",
+    "test": "bun test",
+    "health": "bun run scripts/health-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
@@ -75,5 +81,8 @@
     "@anthropic-ai/vertex-sdk": "^0.14",
     "@aws-sdk/client-sts": "^3",
     "@aws-sdk/client-bedrock": "^3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.10"
   }
 }

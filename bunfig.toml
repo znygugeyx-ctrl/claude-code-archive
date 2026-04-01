@@ -9,3 +9,6 @@ registry = "https://registry.npmjs.org"
 "@ant/computer-use-mcp/sentinelApps" = "./stubs/computer-use-mcp.ts"
 "@ant/computer-use-mcp/types" = "./stubs/computer-use-mcp.ts"
 "@ant/computer-use-swift" = "./stubs/computer-use-swift.ts"
+
+[test]
+timeout = 10000

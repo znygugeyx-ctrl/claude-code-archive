@@ -3,3 +3,17 @@ dist/
 .DS_Store
 *.tgz
 /tmp/
+
+# Coverage & logs
+coverage/
+*.log
+
+# Environment
+.env
+.env.*
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
