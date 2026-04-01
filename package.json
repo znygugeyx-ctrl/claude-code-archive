@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "bun build src/entrypoints/cli.tsx --outdir dist --target bun --define 'MACRO.VERSION=\"2.1.7-source\"' --define 'MACRO.PACKAGE_URL=\"@anthropic-ai/claude-code\"' --define 'MACRO.FEEDBACK_CHANNEL=\"#claude-code-feedback\"' --define 'MACRO.BUILD_TIME=\"\"' --define 'MACRO.ISSUES_EXPLAINER=\"report issues at https://github.com/anthropics/claude-code/issues\"' --define 'process.env.USER_TYPE=\"external\"' --external bun:ffi --external @anthropic-ai/foundry-sdk --external @azure/identity --external sharp --external '@opentelemetry/exporter-metrics-otlp-grpc' --external '@opentelemetry/exporter-metrics-otlp-http' --external '@opentelemetry/exporter-metrics-otlp-proto' --external '@opentelemetry/exporter-prometheus' --external '@opentelemetry/exporter-logs-otlp-grpc' --external '@opentelemetry/exporter-logs-otlp-http' --external '@opentelemetry/exporter-logs-otlp-proto' --external '@opentelemetry/exporter-trace-otlp-grpc' --external '@opentelemetry/exporter-trace-otlp-http' --external '@opentelemetry/exporter-trace-otlp-proto'",
-    "start": "bun dist/cli.js"
+    "start": "CLAUDE_CODE_USE_BEDROCK=1 bun dist/cli.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
