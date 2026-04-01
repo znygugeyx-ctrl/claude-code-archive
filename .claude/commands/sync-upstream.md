@@ -1,55 +1,117 @@
-# Sync Upstream: 检测官方 Claude Code CHANGELOG 变更并生成同步建议
+# Sync Upstream: 检测官方 Claude Code CHANGELOG 变更并更新 SYNC.md
 
-你是一个代码同步助手。你的任务是检测官方 Claude Code 仓库的 CHANGELOG.md 变更，与本地源码对比，并生成详细的修改建议报告。
+你是一个代码同步助手。通过 GitHub API 获取官方 CHANGELOG.md 的增量变更，分析后更新项目根目录的 `SYNC.md`。
+
+## 参数
+
+- 无参数: 检测新版本并更新 SYNC.md
+- `--npm`: 同时逆向最新 npm 包对比实现细节
+- `--check`: 仅检查是否有新版本，不修改文件
 
 ## 执行流程
 
-### Step 1: 读取同步状态
+### Step 1: 读取当前同步状态
 
-读取项目根目录下的 `.sync-state.json` 文件，获取 `lastSyncedVersion`。如果文件不存在，告知用户这是首次运行，将检查所有版本。
+读取项目根目录的 `SYNC.md`，从头部元数据提取：
+- `上次检查` 日期
+- `官方最新` 版本号
+- `本地基线` 版本号
 
-### Step 2: 拉取官方 CHANGELOG
+如果 `SYNC.md` 不存在，告知用户运行首次初始化。
 
-使用 WebFetch 获取官方 CHANGELOG：
+### Step 2: 获取 CHANGELOG 增量变更
+
+通过 GitHub API 获取 CHANGELOG.md 在上次检查日期之后的 commit：
+
+```bash
+gh api "repos/anthropics/claude-code/commits?path=CHANGELOG.md&since=<上次检查日期>T00:00:00Z&per_page=20" \
+  --jq '.[] | {sha: .sha[:8], date: .commit.committer.date}'
 ```
-https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md
+
+如果没有新 commit，告知用户"已是最新"并结束。
+
+### Step 3: 解析每个 commit 的 diff
+
+对每个新 commit 获取 CHANGELOG.md 的 diff：
+
+```bash
+gh api "repos/anthropics/claude-code/commits/<sha>" \
+  --jq '.files[] | select(.filename=="CHANGELOG.md") | .patch'
 ```
 
-### Step 3: 解析新版本
+从 diff 中提取：
+- 新版本号：匹配 `+## <version>` 格式的行
+- 变更条目：匹配 `+- <description>` 格式的行
+- 变更类型：从描述开头提取（Added/Fixed/Improved/Changed/Other）
 
-解析 CHANGELOG 中 `## <version>` 格式的版本标题。提取 `lastSyncedVersion` 之后的所有新版本及其变更条目。
+### Step 4: 检查 SYNC.md 中已有的版本
 
-如果没有新版本，告知用户"已是最新"并结束。
+读取 SYNC.md，检查提取到的每个版本号是否已存在（`## <version>` 标题）。
+**跳过已存在的版本**（幂等性保证）。
 
-### Step 4: 生成差异报告
+### Step 5: 对新条目分类优先级
 
-对每个新版本的每条变更条目：
+按以下规则自动分类：
 
-1. **分析变更类型**：根据前缀分类
-   - Added → 新功能
-   - Fixed → Bug 修复
-   - Improved → 增强
-   - 其他 → 杂项
+**🔴 高优先级** — 描述中包含以下关键词（不区分大小写）：
+`hook`, `permission`, `tool`, `agent`, `SDK`, `MCP`, `API`, `model`, `worktree`, `headless`, `-p`, `--print`, `subagent`
 
-2. **搜索本地源码**：使用 Grep/Glob 在 `src/` 目录下搜索与该变更相关的代码
-   - 根据变更描述中的关键词搜索
-   - 检查是否已有相关实现
+**🟢 低优先级** — 描述中包含以下关键词：
+`UI`, `style`, `copy`, `rendering`, `scroll`, `flicker`, `jitter`, `badge`, `notification`, `deep link`, `paste`
 
-3. **评估优先级**：
-   - 🔴 高：核心功能变更（工具、权限、API、模型交互）
-   - 🟡 中：功能增强（UI改进、性能优化）
-   - 🟢 低：细节调整（文案、样式、日志）
+**➖ 不适用** — 描述中包含以下关键词：
+`Windows`, `PowerShell`, `voice`, `mobile`, `VSCode`, `Apple Silicon`, `April`
 
-4. **给出修改建议**：
-   - 涉及哪些本地文件
-   - 需要怎么修改（新增/修改/删除）
-   - 预估工作量（小/中/大）
+**🟡 中优先级** — 以上均未匹配的默认优先级
 
-### Step 5: 逆向 npm 包（可选）
+### Step 6: 生成新版本的表格
 
-如果用户在调用时附加了参数 `--npm` 或明确要求逆向分析，则执行：
+对每个新版本，按优先级分组生成 Markdown 表格：
 
-1. 获取最新 npm 包版本信息：
+```markdown
+## <version>
+
+### 🔴 高优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | 功能描述 | ❌ | |
+
+### 🟡 中优先级
+...
+
+### 🟢 低优先级
+...
+
+### ➖ 不适用
+...
+```
+
+**新条目的默认状态为 ❌**。不自动搜索 src/（首次初始化时已搜索，后续由用户手动更新状态）。
+
+### Step 7: 更新 SYNC.md
+
+1. 更新头部元数据：
+   - `上次检查` → 当前日期
+   - `官方最新` → 最新检查到的版本号
+2. 在 `---` 分隔线之后、第一个已有版本之前，插入新版本表格（新版本在前）
+3. **不修改已有版本的表格**（保护用户手动更新的状态和备注）
+
+### Step 8: 输出摘要报告
+
+```
+📋 Sync Report
+检查时间: YYYY-MM-DD
+新增版本: N 个 (列出版本号)
+新增条目: X 条 (🔴 N / 🟡 N / 🟢 N / ➖ N)
+SYNC.md 已更新
+```
+
+### Step 9: 逆向 npm 包（可选，仅 --npm 参数）
+
+如果用户附加了 `--npm` 参数：
+
+1. 获取最新 npm 包版本：
    ```bash
    npm view @anthropic-ai/claude-code version
    ```
@@ -61,65 +123,24 @@ https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md
    cd /tmp/claude-code-npm && tar -xzf *.tgz
    ```
 
-3. 格式化 bundle 代码（如果是 minified）：
+3. 格式化 bundle（通常是 minified）：
    ```bash
    npx prettier --write /tmp/claude-code-npm/package/dist/**/*.js
    ```
 
-4. 对比关键模块：
-   - 在解包后的代码中搜索与 CHANGELOG 变更相关的关键词
-   - 对比本地实现与官方 bundle 的差异
-   - 将发现的具体实现细节补充到报告中
+4. 对比 SYNC.md 中 ❌ 状态的高优先级条目：
+   - 在解包代码中搜索相关关键词
+   - 对比本地 src/ 与 bundle 的实现差异
+   - 将发现的实现细节补充到 SYNC.md 对应条目的备注列
 
-5. 清理临时文件：
+5. 清理：
    ```bash
    rm -rf /tmp/claude-code-npm
    ```
 
-### Step 6: 输出报告
-
-以如下格式输出：
-
-```markdown
-# 📋 Upstream Sync Report
-
-**检查时间**: YYYY-MM-DD HH:MM
-**上次同步版本**: x.x.x
-**最新版本**: x.x.x
-**新增版本数**: N
-
----
-
-## 版本 x.x.x
-
-### 🔴 高优先级
-- **[Added] 功能描述**
-  - 关联文件: `src/xxx/xxx.ts`
-  - 本地状态: ❌ 缺失 / ✅ 已有 / ⚠️ 部分实现
-  - 建议: 具体修改建议
-  - 工作量: 小/中/大
-
-### 🟡 中优先级
-...
-
-### 🟢 低优先级
-...
-
----
-
-## 总结
-- 需要处理的变更: X 条
-- 高优先级: X 条
-- 预估总工作量: ...
-```
-
-### Step 7: 更新同步状态
-
-报告输出后，询问用户是否要更新 `.sync-state.json`。如果用户确认，将 `lastSyncedVersion` 更新为最新检查到的版本号，并记录 `lastCheckedAt` 时间戳和 syncHistory。
-
 ## 注意事项
 
-- CHANGELOG 中的描述是功能层面的，不是代码层面的。你需要理解功能含义，然后在本地源码中找到对应的实现位置。
-- 官方 CHANGELOG 更新非常频繁（每 1-2 天一个版本），所以建议定期运行此 skill。
-- 逆向 npm 包时，bundle 通常是 minified 的，需要 prettier 格式化后才可读。
-- 不要自动修改代码，只给出建议。修改由用户决定在哪个分支上执行。
+- CHANGELOG 描述是功能层面的，不是代码层面的
+- 官方 CHANGELOG 更新频繁（每 1-2 天），建议每周运行一次
+- 不要自动修改代码，只更新 SYNC.md 的状态追踪
+- 已有条目的状态和备注由用户手动维护，skill 不覆盖

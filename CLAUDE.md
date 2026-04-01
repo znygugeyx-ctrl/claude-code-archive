@@ -18,7 +18,7 @@
 | `archive` | 只读快照，受 git hooks 保护，不可修改 |
 
 - 使用 `/sync-upstream` skill 追踪官方 CHANGELOG 变化
-- `.sync-state.json` 记录上次同步版本
+- `SYNC.md` 记录完整的功能同步状态（每条官方变更的实现状态和优先级）
 
 ## 构建和运行
 
@@ -44,7 +44,7 @@ bun run start        # 运行（默认 CLAUDE_CODE_USE_BEDROCK=1）
 | `.claude/hooks/security-check.sh` | 统一安全检查脚本（220 行，3 种模式） |
 | `.claude/commands/sync-upstream.md` | Skill：追踪官方 CHANGELOG 变化并生成同步报告 |
 | `.claude/settings.local.json` | Claude Code 权限配置 + PreToolUse 安全 hook |
-| `.sync-state.json` | 上次同步的官方版本号和时间戳 |
+| `SYNC.md` | 官方版本与本地实现的功能差距追踪 |
 
 ## 分析文档索引
 
@@ -58,6 +58,11 @@ bun run start        # 运行（默认 CLAUDE_CODE_USE_BEDROCK=1）
 - `analysis/feature/agent-teams.md` — 多 Agent/Swarm 系统（InProcess/Tmux/iTerm2 三种后端）
 - `analysis/feature/compression.md` — 上下文压缩（4 种触发 + 3 种策略）
 - `analysis/feature/tool-system.md` — 工具注册、执行管线、权限系统、MCP 集成
+
+## 功能同步状态
+
+`SYNC.md` 记录官方 Claude Code 每个版本的变更条目及本地实现状态（✅/⚠️/❌/➖）。
+运行 `/sync-upstream` 可检查新版本并自动更新。在开发相关功能前，先查看 SYNC.md 了解当前差距。
 
 ## 安全 Hooks
 
