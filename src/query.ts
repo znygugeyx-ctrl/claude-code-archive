@@ -523,6 +523,9 @@ async function* queryLoop(
         turnId: deps.uuid(),
         turnCounter: 0,
         consecutiveFailures: 0,
+        consecutiveRefills: tracking?.compacted
+          ? (tracking.consecutiveRefills ?? 0) + 1
+          : 0,
       }
 
       const postCompactMessages = buildPostCompactMessages(compactionResult)

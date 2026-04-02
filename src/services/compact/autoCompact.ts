@@ -57,6 +57,11 @@ export type AutoCompactTrackingState = {
   // Used as a circuit breaker to stop retrying when the context is
   // irrecoverably over the limit (e.g., prompt_too_long).
   consecutiveFailures?: number
+  // Consecutive successful recompactions of an already-compacted context
+  // (refills). Reset when compacting a fresh context.
+  // Used as a circuit breaker to stop looping when post-compact output is
+  // still above the threshold (e.g., summary alone fills the window).
+  consecutiveRefills?: number
 }
 
 export const AUTOCOMPACT_BUFFER_TOKENS = 13_000
@@ -68,6 +73,11 @@ export const MANUAL_COMPACT_BUFFER_TOKENS = 3_000
 // BQ 2026-03-10: 1,279 sessions had 50+ consecutive failures (up to 3,272)
 // in a single session, wasting ~250K API calls/day globally.
 const MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES = 3
+
+// Stop refilling after this many consecutive successful recompactions of an
+// already-compacted context. Prevents an infinite loop when the post-compact
+// summary itself exceeds the threshold.
+const MAX_CONSECUTIVE_AUTOCOMPACT_REFILLS = 3
 
 export function getAutoCompactThreshold(model: string): number {
   const effectiveContextWindow = getEffectiveContextWindowSize(model)
@@ -260,6 +270,16 @@ export async function autoCompactIfNeeded(
   if (
     tracking?.consecutiveFailures !== undefined &&
     tracking.consecutiveFailures >= MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES
+  ) {
+    return { wasCompacted: false }
+  }
+
+  // Circuit breaker: stop refilling after N consecutive successful compactions
+  // of an already-compacted context. Prevents an infinite loop when the
+  // post-compact summary is still above the autocompact threshold.
+  if (
+    tracking?.consecutiveRefills !== undefined &&
+    tracking.consecutiveRefills >= MAX_CONSECUTIVE_AUTOCOMPACT_REFILLS
   ) {
     return { wasCompacted: false }
   }
