@@ -2,12 +2,53 @@
 
 > 本文件追踪官方 Claude Code 版本与本地实现的差距。由 `/sync-upstream` skill 维护。
 
-上次检查: 2026-04-01 | 官方最新: 2.1.89 | 本地基线: 2.1.87
+上次检查: 2026-04-02 | 官方最新: 2.1.90 | 本地基线: 2.1.87
 
 状态图例: ✅ 已实现 | ⚠️ 部分实现 | ❌ 未实现 | ➖ 不适用
 优先级: 🔴 高 | 🟡 中 | 🟢 低
 
 ---
+
+## 2.1.90
+
+### 🔴 高优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | `--resume` causing a full prompt-cache miss on first request for users with deferred tools, MCP servers, or custom agents (regression since v2.1.69) | ❌ | |
+| Fixed | `Edit`/`Write` failing with "File content has changed" when a PostToolUse format-on-save hook rewrites the file between consecutive edits | ❌ | |
+| Fixed | `PreToolUse` hooks that emit JSON to stdout and exit with code 2 not correctly blocking the tool call | ❌ | |
+| Fixed | UI crash when malformed tool input reached the permission dialog | ❌ | |
+| Improved | Performance: eliminated per-turn JSON.stringify of MCP tool schemas on cache-key lookup | ❌ | |
+| Improved | Performance: SDK sessions with long conversations no longer slow down quadratically on transcript writes | ❌ | |
+| Changed | `--resume` picker no longer shows sessions created by `claude -p` or SDK invocations | ❌ | |
+
+### 🟡 中优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | `/powerup` — interactive lessons teaching Claude Code features with animated demos | ❌ | |
+| Added | `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE` env var — keeps existing marketplace cache when `git pull` fails (offline environments) | ❌ | |
+| Added | `.husky` to protected directories (acceptEdits mode) | ❌ | |
+| Fixed | Infinite loop where rate-limit options dialog would repeatedly auto-open after hitting usage limit, eventually crashing the session | ❌ | |
+| Fixed | Auto mode not respecting explicit user boundaries ("don't push", "wait for X before Y") even when action would otherwise be allowed | ❌ | |
+| Improved | Performance: SSE transport now handles large streamed frames in linear time (was quadratic) | ❌ | |
+| Improved | `/resume` all-projects view loads project sessions in parallel, improving load times for users with many projects | ❌ | |
+
+### 🟢 低优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | Collapsed search/read summary badge appearing multiple times in fullscreen scrollback when a CLAUDE.md file auto-loads during a tool call | ❌ | |
+| Fixed | Click-to-expand hover text being nearly invisible on light terminal themes | ❌ | |
+| Fixed | Headers disappearing when scrolling `/model`, `/config`, and other selection screens | ❌ | |
+
+### ➖ 不适用
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | Hardened PowerShell tool permission checks: fixed trailing `&` background job bypass, `-ErrorAction Break` debugger hang, archive-extraction TOCTOU, and parse-fail fallback deny-rule degradation | ➖ | Windows 专属 |
+| Removed | `Get-DnsClientCache` and `ipconfig /displaydns` from auto-allow (DNS cache privacy) | ➖ | Windows 专属 |
 
 ## 2.1.89
 

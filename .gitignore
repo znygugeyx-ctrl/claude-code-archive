@@ -3,6 +3,7 @@ dist/
 .DS_Store
 *.tgz
 /tmp/
+.playwright-mcp/
 
 # Coverage & logs
 coverage/

@@ -66,6 +66,7 @@ bun run health       # 项目健康检查仪表盘
 - `analysis/feature/agent-teams.md` — 多 Agent/Swarm 系统（InProcess/Tmux/iTerm2 三种后端）
 - `analysis/feature/compression.md` — 上下文压缩（4 种触发 + 3 种策略）
 - `analysis/feature/tool-system.md` — 工具注册、执行管线、权限系统、MCP 集成
+- `analysis/feature/auto-dream.md` — autoDream 后台记忆整合（触发链路、5 道门、锁机制、UI、KAIROS 对比）+ KAIROS 守护进程模式深度分析
 
 ## 功能同步状态
 

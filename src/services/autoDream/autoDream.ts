@@ -71,6 +71,10 @@ const DEFAULTS: AutoDreamConfig = {
  * per-field validation since GB cache can return stale wrong-type values.
  */
 function getConfig(): AutoDreamConfig {
+  // Env overrides for testing (bypass dead GrowthBook under Bedrock)
+  const envHours = Number(process.env.CLAUDE_CODE_DREAM_MIN_HOURS)
+  const envSessions = Number(process.env.CLAUDE_CODE_DREAM_MIN_SESSIONS)
+
   const raw =
     getFeatureValue_CACHED_MAY_BE_STALE<Partial<AutoDreamConfig> | null>(
       'tengu_onyx_plover',
@@ -78,17 +82,21 @@ function getConfig(): AutoDreamConfig {
     )
   return {
     minHours:
-      typeof raw?.minHours === 'number' &&
-      Number.isFinite(raw.minHours) &&
-      raw.minHours > 0
-        ? raw.minHours
-        : DEFAULTS.minHours,
+      Number.isFinite(envHours) && envHours >= 0
+        ? envHours
+        : typeof raw?.minHours === 'number' &&
+            Number.isFinite(raw.minHours) &&
+            raw.minHours > 0
+          ? raw.minHours
+          : DEFAULTS.minHours,
     minSessions:
-      typeof raw?.minSessions === 'number' &&
-      Number.isFinite(raw.minSessions) &&
-      raw.minSessions > 0
-        ? raw.minSessions
-        : DEFAULTS.minSessions,
+      Number.isFinite(envSessions) && envSessions > 0
+        ? envSessions
+        : typeof raw?.minSessions === 'number' &&
+            Number.isFinite(raw.minSessions) &&
+            raw.minSessions > 0
+          ? raw.minSessions
+          : DEFAULTS.minSessions,
   }
 }
 
