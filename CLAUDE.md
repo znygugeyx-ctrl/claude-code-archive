@@ -122,3 +122,4 @@ git worktree remove ../claude-code-<name>
 - 永远不要提交 API key、token、密钥等敏感信息（安全 hook 会拦截）
 - 构建报错缺失模块时，优先用 `scripts/create-stubs.ts` 自动生成 stub
 - 架构分析文档放在 `analysis/` 目录下
+- **功能实现后，必须更新 `SYNC.md`**：将对应条目状态从 `❌` 改为 `✅`，并在备注列填写实现摘要（涉及文件/机制）

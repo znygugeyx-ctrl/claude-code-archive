@@ -83,7 +83,7 @@
 | Fixed | LSP server zombie state after crash — now restarts on next request | ❌ | |
 | Fixed | Prompt history entries with CJK/emoji dropped on 4KB boundary in history.jsonl | ❌ | |
 | Fixed | `/stats` undercounting tokens by excluding subagent usage | ❌ | |
-| Fixed | Autocompact thrash loop — detects 3 consecutive refills and stops with error | ❌ | |
+| Fixed | Autocompact thrash loop — detects 3 consecutive refills and stops with error | ✅ | `consecutiveRefills` circuit breaker in `autoCompact.ts` + `query.ts` |
 | Fixed | Prompt cache misses caused by tool schema bytes changing mid-session | ❌ | |
 | Fixed | Nested CLAUDE.md files re-injected dozens of times in long sessions | ❌ | |
 | Fixed | `--resume` crash when transcript contains tool_result from older CLI version | ❌ | |
