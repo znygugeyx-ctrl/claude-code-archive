@@ -57,20 +57,20 @@
 | 类型 | 描述 | 状态 | 备注 |
 |------|------|------|------|
 | Added | `"defer"` permission decision to PreToolUse hooks — headless sessions pause at tool call, resume with `-p --resume` | ❌ | 当前只有 allow/deny/ask，缺少 defer |
-| Added | `PermissionDenied` hook — fires after auto mode classifier denials, return `{retry: true}` to retry | ✅ | hooks.ts:3529 executePermissionDeniedHooks() |
-| Added | Named subagents to `@` mention typeahead suggestions | ✅ | SendMessageTool.ts:800 路由 + state/selectors named_agent |
-| Added | `MCP_CONNECTION_NONBLOCKING=true` for `-p` mode to skip MCP connection wait | ❌ | 未找到任何相关实现 |
-| Fixed | `Edit(//path/**)` and `Read(//path/**)` allow rules check resolved symlink target | ✅ | permissions/filesystem.ts:614+ 完整实现 |
-| Fixed | `-p --resume` hangs when deferred tool input exceeds 64KB or no deferred marker | ✅ | resume + deferred tools 基础设施已实现 |
-| Fixed | MCP tool errors truncating to only first content block for multi-element error content | ✅ | mcpValidation.ts:84 + mcp/client.ts |
-| Fixed | Skill reminders and system context dropped when sending messages with images via SDK | ❌ | 有 skill reminder 注入但无 image 条件处理 |
-| Fixed | PreToolUse/PostToolUse hooks receive `file_path` as absolute path for Write/Edit/Read tools | ✅ | FileWriteTool.ts:126 expandPath() |
-| Fixed | Hooks `if` condition filtering not matching compound commands (`ls && git push`) | ⚠️ | hooks.ts:1383 有 if 条件但只支持单 pattern，不支持复合命令 |
-| Fixed | OOM crash when Edit tool used on files >1 GiB | ✅ | FileEditTool.ts:84 MAX_EDIT_FILE_SIZE = 1GiB |
-| Improved | Bash tool warns when formatter/linter modifies previously read files | ❌ | 无此警告机制 |
-| Changed | `Edit` works on files viewed via `Bash` with `sed -n` or `cat`, no separate `Read` needed | ⚠️ | BashTool 仅注册 sed -i 的 readState，不含 cat/head 查看 |
-| Changed | Hook output over 50K chars saved to disk with file path + preview | ❌ | 当前截断在 10K，无磁盘保存机制 |
-| Documented | `TaskCreated` hook event and its blocking behavior | ✅ | hooks.ts:3745 + TaskCreateTool.ts:93 完整实现 |
+| Added | `PermissionDenied` hook — fires after auto mode classifier denials, return `{retry: true}` to retry | ❌ | |
+| Added | Named subagents to `@` mention typeahead suggestions | ❌ | |
+| Added | `MCP_CONNECTION_NONBLOCKING=true` for `-p` mode to skip MCP connection wait | ❌ | |
+| Fixed | `Edit(//path/**)` and `Read(//path/**)` allow rules check resolved symlink target | ❌ | |
+| Fixed | `-p --resume` hangs when deferred tool input exceeds 64KB or no deferred marker | ❌ | |
+| Fixed | MCP tool errors truncating to only first content block for multi-element error content | ❌ | |
+| Fixed | Skill reminders and system context dropped when sending messages with images via SDK | ❌ | |
+| Fixed | PreToolUse/PostToolUse hooks receive `file_path` as absolute path for Write/Edit/Read tools | ❌ | |
+| Fixed | Hooks `if` condition filtering not matching compound commands (`ls && git push`) | ❌ | |
+| Fixed | OOM crash when Edit tool used on files >1 GiB | ❌ | |
+| Improved | Bash tool warns when formatter/linter modifies previously read files | ❌ | |
+| Changed | `Edit` works on files viewed via `Bash` with `sed -n` or `cat`, no separate `Read` needed | ❌ | |
+| Changed | Hook output over 50K chars saved to disk with file path + preview | ❌ | |
+| Documented | `TaskCreated` hook event and its blocking behavior | ❌ | |
 
 ### 🟡 中优先级
 
