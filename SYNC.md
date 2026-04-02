@@ -122,4 +122,4 @@
 | Improved | PowerShell tool prompt with version-appropriate syntax guidance (5.1 vs 7+) | ➖ | PowerShell 特定 |
 | Other | PowerShell argument hardening (double-quote + whitespace prompt) | ➖ | PowerShell 特定 |
 | Other | `/env` now applies to PowerShell tool commands | ➖ | PowerShell 特定 |
-| Other | `/buddy` — April 1st Easter egg | ➖ | 彩蛋 |
+| Other | `/buddy` — April 1st Easter egg | ✅ | 彩蛋，本 fork 主动实现 |
