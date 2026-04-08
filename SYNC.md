@@ -2,12 +2,140 @@
 
 > 本文件追踪官方 Claude Code 版本与本地实现的差距。由 `/sync-upstream` skill 维护。
 
-上次检查: 2026-04-02 | 官方最新: 2.1.90 | 本地基线: 2.1.87
+上次检查: 2026-04-08 | 官方最新: 2.1.96 | 本地基线: 2.1.87
 
 状态图例: ✅ 已实现 | ⚠️ 部分实现 | ❌ 未实现 | ➖ 不适用
 优先级: 🔴 高 | 🟡 中 | 🟢 低
 
 ---
+
+## 2.1.96
+
+### 🟡 中优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | Bedrock requests failing with `403 "Authorization header is missing"` when using `AWS_BEARER_TOKEN_BEDROCK` or `CLAUDE_CODE_SKIP_BEDROCK_AUTH` (regression in 2.1.94) | ❌ | |
+
+## 2.1.94
+
+### 🔴 高优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Changed | Default effort level changed from medium to high for API-key, Bedrock/Vertex/Foundry, Team, and Enterprise users (control via `/effort`) | ❌ | |
+| Added | `hookSpecificOutput.sessionTitle` to `UserPromptSubmit` hooks for setting the session title | ❌ | |
+| Fixed | Agents appearing stuck after a 429 rate-limit response with a long Retry-After header — error now surfaces immediately | ❌ | |
+| Fixed | Plugin skill hooks defined in YAML frontmatter being silently ignored | ❌ | |
+| Fixed | Bedrock invocation of Sonnet 3.5 v2 by using the `us.` inference profile ID | ❌ | |
+| Fixed | SDK/print mode not preserving the partial assistant response in conversation history when interrupted mid-stream | ❌ | |
+| Improved | `--resume` now resumes sessions from other worktrees of the same repo directly instead of printing a `cd` command | ❌ | |
+
+### 🟡 中优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | Support for Amazon Bedrock powered by Mantle, set `CLAUDE_CODE_USE_MANTLE=1` | ❌ | |
+| Added | `keep-coding-instructions` frontmatter field support for plugin output styles | ❌ | |
+| Changed | Plugin skills declared via `"skills": ["./"]` now use the skill's frontmatter `name` for invocation name instead of directory basename | ❌ | |
+| Fixed | Console login on macOS silently failing with "Not logged in" when login keychain is locked or password out of sync | ❌ | |
+| Fixed | Plugin hooks failing with "No such file or directory" when `CLAUDE_PLUGIN_ROOT` was not set | ❌ | |
+| Fixed | `${CLAUDE_PLUGIN_ROOT}` resolving to marketplace source directory instead of installed cache for local-marketplace plugins on startup | ❌ | |
+| Fixed | `FORCE_HYPERLINK` environment variable being ignored when set via `settings.json` `env` | ❌ | |
+| Fixed | CJK and other multibyte text being corrupted with U+FFFD in stream-json input/output when chunk boundaries split a UTF-8 sequence | ❌ | |
+
+### 🟢 低优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | Compact `Slacked #channel` header with clickable channel link for Slack MCP send-message tool calls | ❌ | |
+| Fixed | Scrollback showing the same diff repeated and blank pages in long-running sessions | ❌ | |
+| Fixed | Multiline user prompts in the transcript indenting wrapped lines under the `❯` caret instead of under the text | ❌ | |
+| Fixed | Shift+Space inserting the literal word "space" instead of a space character in search inputs | ❌ | |
+| Fixed | Hyperlinks opening two browser tabs when clicked inside tmux running in an xterm.js-based terminal (VS Code, Hyper, Tabby) | ❌ | |
+| Fixed | Alt-screen rendering bug where content height changes mid-scroll could leave compounding ghost lines | ❌ | |
+| Fixed | Native terminal cursor not tracking the selected tab in dialogs, so screen readers and magnifiers can follow tab navigation | ❌ | |
+
+### ➖ 不适用
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | [VSCode] Reduced cold-open subprocess work on starting a session | ➖ | VSCode 专属 |
+| Fixed | [VSCode] Dropdown menus selecting the wrong item when mouse was over the list while typing or using arrow keys | ➖ | VSCode 专属 |
+| Added | [VSCode] Warning banner when `settings.json` files fail to parse | ➖ | VSCode 专属 |
+
+## 2.1.92
+
+### 🔴 高优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | Per-model and cache-hit breakdown to `/cost` for subscription users | ❌ | model 相关 |
+| Fixed | Subagent spawning permanently failing with "Could not determine pane count" after tmux windows are killed or renumbered | ❌ | subagent |
+| Fixed | Prompt-type Stop hooks incorrectly failing when the small fast model returns `ok:false`; restored `preventContinuation:true` semantics for non-Stop prompt-type hooks | ❌ | hook |
+| Fixed | Tool input validation failures when streaming emits array/object fields as JSON-encoded strings | ❌ | tool |
+| Fixed | API 400 error that could occur when extended thinking produced a whitespace-only text block alongside real content | ❌ | API |
+| Fixed | Plugin MCP servers stuck "connecting" on session start when they duplicate a claude.ai connector that is unauthenticated | ❌ | MCP |
+| Improved | Write tool diff computation speed for large files (60% faster on files with tabs/`&`/`$`) | ❌ | tool |
+
+### 🟡 中优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | `forceRemoteSettingsRefresh` policy setting: blocks startup until remote managed settings are freshly fetched, exits if fetch fails | ❌ | |
+| Added | Interactive Bedrock setup wizard from login screen when selecting "3rd-party platform" | ❌ | |
+| Changed | Remote Control session names use hostname as default prefix (e.g. `myhost-graceful-unicorn`), overridable with `--remote-control-session-name-prefix` | ❌ | |
+| Removed | `/tag` command | ❌ | |
+| Removed | `/vim` command (toggle vim mode via `/config` → Editor mode) | ❌ | |
+| Added | Linux sandbox ships `apply-seccomp` helper in both npm and native builds, restoring unix-socket blocking for sandboxed commands | ❌ | |
+
+### 🟢 低优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Changed | `/release-notes` is now an interactive version picker | ❌ | |
+| Added | Pro users see footer hint when returning to session after prompt cache expires | ❌ | |
+| Fixed | Accidental feedback survey submissions from auto-pilot keypresses and consecutive-prompt digit collisions | ❌ | |
+| Fixed | Misleading "esc to interrupt" hint appearing alongside "esc to clear" when text selection exists in fullscreen mode | ❌ | |
+| Fixed | Homebrew install update prompts to use correct release channel (`claude-code` → stable, `claude-code@latest` → latest) | ❌ | |
+| Fixed | `ctrl+e` jumping to end of next line when already at end of line in multiline prompts | ❌ | |
+| Fixed | Same message appearing at two positions when scrolling up in fullscreen mode (iTerm2, Ghostty, DEC 2026 terminals) | ❌ | scroll |
+| Fixed | Idle-return "/clear to save X tokens" hint showing cumulative session tokens instead of current context size | ❌ | |
+
+## 2.1.91
+
+### 🔴 高优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | MCP tool result persistence override via `_meta["anthropic/maxResultSizeChars"]` annotation (up to 500K) | ❌ | MCP |
+| Changed | Plugins can now ship executables under `bin/` and invoke them as bare commands from the Bash tool | ❌ | tool |
+| Fixed | JSON schema validation for `permissions.defaultMode: "auto"` in settings.json | ❌ | permission |
+| Improved | `/claude-api` skill guidance for agent design patterns including tool surface decisions, context management, and caching strategy | ❌ | SDK, agent |
+| Improved | Edit tool now uses shorter `old_string` anchors, reducing output tokens | ❌ | tool |
+
+### 🟡 中优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | `disableSkillShellExecution` setting to disable inline shell execution in skills, custom slash commands, and plugin commands | ❌ | |
+| Fixed | Transcript chain breaks on `--resume` that could lose conversation history when async transcript writes fail silently | ❌ | |
+| Fixed | Plan mode in remote sessions losing track of plan file after container restart | ❌ | |
+
+### 🟢 低优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | Support for multi-line prompts in `claude-cli://open?q=` deep links (encoded newlines `%0A` no longer rejected) | ❌ | deep link |
+| Fixed | `cmd+delete` not deleting to start of line on iTerm2, kitty, WezTerm, Ghostty, and Windows Terminal | ❌ | |
+| Changed | `/feedback` now explains why it's unavailable instead of disappearing from the slash menu | ❌ | |
+| Improved | Performance: faster `stripAnsi` on Bun by routing through `Bun.stripANSI` | ❌ | |
+
+### ➖ 不适用
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | Windows version cleanup not protecting the active version's rollback copy | ➖ | Windows 专属 |
 
 ## 2.1.90
 
