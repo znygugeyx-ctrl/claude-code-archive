@@ -2,12 +2,80 @@
 
 > 本文件追踪官方 Claude Code 版本与本地实现的差距。由 `/sync-upstream` skill 维护。
 
-上次检查: 2026-04-08 | 官方最新: 2.1.96 | 本地基线: 2.1.87
+上次检查: 2026-04-09 | 官方最新: 2.1.97 | 本地基线: 2.1.87
 
 状态图例: ✅ 已实现 | ⚠️ 部分实现 | ❌ 未实现 | ➖ 不适用
 优先级: 🔴 高 | 🟡 中 | 🟢 低
 
 ---
+
+## 2.1.97
+
+### 🔴 高优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | `workspace.git_worktree` to the status line JSON input, set when the current directory is inside a linked git worktree | ❌ | |
+| Added | `● N running` indicator in `/agents` next to agent types with live subagent instances | ❌ | |
+| Fixed | `--dangerously-skip-permissions` being silently downgraded to accept-edits mode after approving a write to a protected path | ❌ | |
+| Fixed | Bash tool permissions hardened: tightened env-var prefix checks and network redirect handling, reduced false prompts on common commands | ❌ | |
+| Fixed | Permission rules with names matching JavaScript prototype properties (e.g. `toString`) causing `settings.json` to be silently ignored | ❌ | |
+| Fixed | `permissions.additionalDirectories` changes in settings not applying mid-session | ❌ | |
+| Fixed | Removing a directory from `settings.permissions.additionalDirectories` revoking access to the same directory passed via `--add-dir` | ❌ | |
+| Fixed | MCP HTTP/SSE connections accumulating ~50 MB/hr of unreleased buffers when servers reconnect | ❌ | |
+| Fixed | MCP OAuth `oauth.authServerMetadataUrl` not being honored on token refresh after restart, fixing ADFS and similar IdPs | ❌ | |
+| Fixed | Prompt-type `Stop`/`SubagentStop` hooks failing on long sessions; hook evaluator API errors now show actual message instead of "JSON validation failed" | ❌ | |
+| Fixed | Subagents with worktree isolation or `cwd:` override leaking their working directory back to the parent session's Bash tool | ❌ | |
+| Fixed | Compaction writing duplicate multi-MB subagent transcript files on prompt-too-long retries | ❌ | |
+| Fixed | Crash in `NO_FLICKER` mode when hovering over MCP tool results | ❌ | |
+| Fixed | `NO_FLICKER` mode memory leak where API retries left stale streaming state | ❌ | |
+| Improved | Auto mode and bypass-permissions mode now auto-approve sandbox network access prompts | ❌ | |
+| Improved | Image handling: pasted and attached images compressed to same token budget as images read via Read tool | ❌ | |
+| Improved | Session transcript size: skips empty hook entries and caps stored pre-edit file copies | ❌ | |
+| Improved | Bash tool OTEL tracing: subprocesses inherit a W3C `TRACEPARENT` env var when tracing is enabled | ❌ | |
+| Updated | `/claude-api` skill to cover Managed Agents alongside the Claude API | ❌ | |
+
+### 🟡 中优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | `refreshInterval` status line setting to re-run the status line command every N seconds | ❌ | |
+| Added | Syntax highlighting for Cedar policy files (`.cedar`, `.cedarpolicy`) | ❌ | |
+| Fixed | Managed-settings allow rules remaining active after an admin removed them until process restart | ❌ | |
+| Fixed | 429 retries burning all attempts in ~13 seconds when server returns small `Retry-After` — exponential backoff now applies as minimum | ❌ | |
+| Fixed | Rate-limit upgrade options disappearing after context compaction | ❌ | |
+| Fixed | Several `/resume` picker issues: `--resume <name>` opening uneditable, Ctrl+A reload wiping search, empty list swallowing navigation, task-status text replacing conversation summary, cross-project staleness | ❌ | |
+| Fixed | File-edit diffs disappearing on `--resume` when edited file was larger than 10KB | ❌ | |
+| Fixed | `--resume` cache misses and lost mid-turn input from attachment messages not being saved to transcript | ❌ | |
+| Fixed | Messages typed while Claude is working not being persisted to transcript | ❌ | |
+| Fixed | `claude plugin update` reporting "already at latest version" for git-based marketplace plugins when remote had newer commits | ❌ | |
+| Fixed | Slash command picker breaking when a plugin's frontmatter `name` is a YAML boolean keyword | ❌ | |
+| Fixed | Bedrock SigV4 authentication failing when `AWS_BEARER_TOKEN_BEDROCK` or `ANTHROPIC_BEDROCK_BASE_URL` are set to empty strings | ❌ | |
+| Improved | Accept Edits mode auto-approves filesystem commands prefixed with safe env vars or process wrappers (e.g. `LANG=C rm foo`, `timeout 5 mkdir out`) | ❌ | |
+| Improved | `sandbox.network.allowMachLookup` now takes effect on macOS | ❌ | |
+| Improved | Slash command and `@`-mention completion triggers after CJK sentence punctuation | ❌ | |
+| Improved | Bridge sessions show local git repo, branch, and working directory on claude.ai session card | ❌ | |
+| Improved | Transcript accuracy: per-block entries carry final token usage instead of streaming placeholder | ❌ | |
+
+### 🟢 低优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | Focus view toggle (`Ctrl+O`) in `NO_FLICKER` mode showing prompt, one-line tool summary with edit diffstats, and final response | ❌ | |
+| Fixed | Copying wrapped URLs in `NO_FLICKER` mode inserting spaces at line breaks | ❌ | |
+| Fixed | Scroll rendering artifacts in `NO_FLICKER` mode when running inside zellij | ❌ | |
+| Fixed | Custom status line not displaying in `NO_FLICKER` mode on terminals shorter than 24 rows | ❌ | |
+| Fixed | Shift+Enter and Alt/Cmd+arrow shortcuts not working in Warp with `NO_FLICKER` mode | ❌ | |
+| Improved | Footer layout: indicators (Focus, notifications) now stay on mode-indicator row instead of wrapping below | ❌ | |
+| Improved | Context-low warning shows as transient footer notification instead of persistent row | ❌ | |
+| Improved | Markdown blockquotes show a continuous left bar across wrapped lines | ❌ | |
+
+### ➖ 不适用
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | Slow mouse-wheel scrolling in `NO_FLICKER` mode on Windows Terminal | ➖ | Windows 专属 |
+| Fixed | Korean/Japanese/Unicode text becoming garbled when copied in no-flicker mode on Windows | ➖ | Windows 专属 |
 
 ## 2.1.96
 
