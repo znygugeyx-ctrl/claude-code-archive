@@ -2,10 +2,161 @@
 
 > 本文件追踪官方 Claude Code 版本与本地实现的差距。由 `/sync-upstream` skill 维护。
 
-上次检查: 2026-04-09 | 官方最新: 2.1.97 | 本地基线: 2.1.87
+上次检查: 2026-04-11 | 官方最新: 2.1.101 | 本地基线: 2.1.87
 
 状态图例: ✅ 已实现 | ⚠️ 部分实现 | ❌ 未实现 | ➖ 不适用
 优先级: 🔴 高 | 🟡 中 | 🟢 低
+
+---
+
+## 2.1.101
+
+### 🔴 高优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Improved | tool-not-available errors now explain why and how to proceed when model calls a tool that exists but isn't available in the current context | ❌ | |
+| Improved | `claude -p --resume <name>` now accepts session titles set via `/rename` or `--name` | ❌ | |
+| Improved | Settings resilience: unrecognized hook event name in `settings.json` no longer causes the entire file to be ignored | ❌ | |
+| Improved | Plugin hooks from plugins force-enabled by managed settings now run when `allowManagedHooksOnly` is set | ❌ | |
+| Improved | SDK `query()` cleans up subprocess and temp files when consumers `break` from `for await` or use `await using` | ❌ | |
+| Fixed | Command injection vulnerability in the POSIX `which` fallback used by LSP binary detection | ❌ | |
+| Fixed | `--resume` chain recovery bridging into an unrelated subagent conversation when a subagent message landed near a main-chain write gap | ❌ | |
+| Fixed | Crash on `--resume` when a persisted Edit/Write tool result was missing its `file_path` | ❌ | |
+| Fixed | `permissions.deny` rules not overriding a PreToolUse hook's `permissionDecision: "ask"` — hook could downgrade a deny into a prompt | ❌ | |
+| Fixed | `claude -w <name>` failing with "already exists" after a previous session's worktree cleanup left a stale directory | ❌ | |
+| Fixed | Subagents not inheriting MCP tools from dynamically-injected servers | ❌ | |
+| Fixed | Sub-agents running in isolated worktrees being denied Read/Edit access to files inside their own worktree | ❌ | |
+| Fixed | `claude mcp serve` tool calls failing with "Tool execution failed" in MCP clients that validate `outputSchema` | ❌ | |
+| Fixed | `RemoteTrigger` tool's `run` action sending an empty body and being rejected by the server | ❌ | |
+| Fixed | Grep tool ENOENT when the embedded ripgrep binary path becomes stale (VS Code auto-update, macOS App Translocation); now falls back to system `rg` and self-heals mid-session | ❌ | |
+| Fixed | `/mcp` menu offering OAuth-specific actions for MCP servers configured with `headersHelper`; Reconnect is now offered instead | ❌ | |
+| Fixed | `claude --continue -p` not correctly continuing sessions created by `-p` or the SDK | ❌ | |
+
+### 🟡 中优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | `/team-onboarding` command to generate a teammate ramp-up guide from local Claude Code usage | ❌ | |
+| Added | OS CA certificate store trust by default; enterprise TLS proxies work without extra setup (`CLAUDE_CODE_CERT_STORE=bundled` to use only bundled CAs) | ❌ | |
+| Changed | `/ultraplan` and other remote-session features now auto-create a default cloud environment instead of requiring web setup first | ❌ | |
+| Improved | Brief mode retries once when Claude responds with plain text instead of a structured message | ❌ | |
+| Improved | Focus mode: Claude writes more self-contained summaries since it knows you only see its final message | ❌ | |
+| Improved | Rate-limit retry messages show which limit was hit and when it resets instead of an opaque seconds countdown | ❌ | |
+| Improved | Refusal error messages include the API-provided explanation when available | ❌ | |
+| Improved | `/plugin` and `claude plugin update` show a warning when the marketplace could not be refreshed, instead of silently reporting a stale version | ❌ | |
+| Improved | Plan mode hides the "Refine with Ultraplan" option when the user's org or auth setup can't reach Claude Code on the web | ❌ | |
+| Improved | Beta tracing honors `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, and `OTEL_LOG_TOOL_CONTENT`; sensitive span attributes no longer emitted unless opted in | ❌ | |
+| Fixed | Memory leak where long sessions retained dozens of historical copies of the message list in the virtual scroller | ❌ | |
+| Fixed | `--resume`/`--continue` losing conversation context on large sessions when loader anchored on a dead-end branch | ❌ | |
+| Fixed | Hardcoded 5-minute request timeout that aborted slow backends (local LLMs, extended thinking, slow gateways) regardless of `API_TIMEOUT_MS` | ❌ | |
+| Fixed | `--setting-sources` without `user` causing background cleanup to ignore `cleanupPeriodDays` and delete conversation history older than 30 days | ❌ | |
+| Fixed | Bedrock SigV4 authentication failing with 403 when `ANTHROPIC_AUTH_TOKEN`, `apiKeyHelper`, or `ANTHROPIC_CUSTOM_HEADERS` set an Authorization header | ❌ | |
+| Fixed | Sandboxed Bash commands failing with `mktemp: No such file or directory` after a fresh boot | ❌ | |
+| Fixed | Several `/resume` picker issues: narrow default view hiding sessions from other projects, incorrect cwd in worktrees, session-not-found errors not surfacing in stderr, terminal title not being set, resume hint overlapping the prompt input | ❌ | |
+| Fixed | `/btw` writing a copy of the entire conversation to disk on every use | ❌ | |
+| Fixed | `/context` Free space and Messages breakdown disagreeing with the header percentage | ❌ | |
+| Fixed | Several plugin issues: duplicate `name:` frontmatter routing, `/plugin update` ENAMETOOLONG, Discover showing installed plugins, stale version cache, skills not honoring `context: fork` and `agent` frontmatter | ❌ | |
+| Fixed | Crash when `settings.json` env values are numbers instead of strings | ❌ | |
+| Fixed | In-app settings writes (e.g. `/add-dir --remember`, `/config`) not refreshing the in-memory snapshot, preventing removed directories from being revoked mid-session | ❌ | |
+| Fixed | Custom keybindings (`~/.claude/keybindings.json`) not loading on Bedrock, Vertex, and other third-party providers | ❌ | |
+| Fixed | Several Remote Control issues: worktrees removed on session crash, connection failures not persisting in the transcript, spurious "Disconnected" indicator in brief mode for local sessions, and `/remote-control` failing over SSH when only `CLAUDE_CODE_ORGANIZATION_UUID` is set | ❌ | |
+| Fixed | `/insights` sometimes omitting the report file link from its response | ❌ | |
+
+### 🟢 低优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | `ctrl+]`, `ctrl+\`, and `ctrl+^` keybindings not firing in terminals that send raw C0 control bytes (Terminal.app, default iTerm2, xterm) | ❌ | |
+| Fixed | `/login` OAuth URL rendering with padding that prevented clean mouse selection | ❌ | |
+| Fixed | Rendering issues: flicker in non-fullscreen mode when content above visible area changed, terminal scrollback being wiped during long sessions, and mouse-scroll escape sequences leaking into the prompt as text | ❌ | |
+
+### ➖ 不适用
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | [VSCode] File attachment below chat input not clearing when the last editor tab is closed | ➖ | VSCode 专属 |
+
+---
+
+## 2.1.98
+
+### 🔴 高优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | Monitor tool for streaming events from background scripts | ❌ | |
+| Added | Subprocess sandboxing with PID namespace isolation on Linux when `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is set; `CLAUDE_CODE_SCRIPT_CAPS` env var to limit per-session script invocations | ❌ | |
+| Added | `--exclude-dynamic-system-prompt-sections` flag to print mode for improved cross-user prompt caching | ❌ | |
+| Added | `workspace.git_worktree` to the status line JSON input, set whenever the current directory is inside a linked git worktree | ❌ | |
+| Added | W3C `TRACEPARENT` env var to Bash tool subprocesses when OTEL tracing is enabled | ❌ | |
+| Fixed | Bash tool permission bypass where a backslash-escaped flag could be auto-allowed as read-only and lead to arbitrary code execution | ❌ | |
+| Fixed | Compound Bash commands bypassing forced permission prompts for safety checks and explicit ask rules in auto and bypass-permissions modes | ❌ | |
+| Fixed | Read-only commands with env-var prefixes not prompting unless the var is known-safe (`LANG`, `TZ`, `NO_COLOR`, etc.) | ❌ | |
+| Fixed | Redirects to `/dev/tcp/...` or `/dev/udp/...` not prompting instead of auto-allowing | ❌ | |
+| Fixed | MCP OAuth `oauth.authServerMetadataUrl` config override not being honored on token refresh after restart, affecting ADFS and similar IdPs | ❌ | |
+| Fixed | `--dangerously-skip-permissions` being silently downgraded to accept-edits mode after approving a write to a protected path via Bash | ❌ | |
+| Fixed | `permissions.additionalDirectories` changes not applying mid-session — removed directories lose access immediately and added ones work without restart | ❌ | |
+| Fixed | Removing a directory from `additionalDirectories` revoking access to the same directory passed via `--add-dir` | ❌ | |
+| Fixed | `Bash(cmd:*)` and `Bash(git commit *)` wildcard permission rules failing to match commands with extra spaces or tabs | ❌ | |
+| Fixed | `Bash(...)` deny rules being downgraded to a prompt for piped commands that mix `cd` with other segments | ❌ | |
+| Fixed | False Bash permission prompts for `cut -d /`, `paste -d /`, `column -s /`, `awk '{print $1}' file`, and filenames containing `%` | ❌ | |
+| Fixed | Permission rules with names matching JavaScript prototype properties (e.g. `toString`) causing `settings.json` to be silently ignored | ❌ | |
+| Fixed | Agent team members not inheriting the leader's permission mode when using `--dangerously-skip-permissions` | ❌ | |
+| Fixed | Crash in fullscreen mode when hovering over MCP tool results | ❌ | |
+| Fixed | MCP tools with `_meta["anthropic/maxResultSizeChars"]` not bypassing the token-based persist layer | ❌ | |
+| Fixed | Background subagents that fail with an error not reporting partial progress to the parent agent | ❌ | |
+| Fixed | Prompt-type Stop/SubagentStop hooks failing on long sessions; hook evaluator API errors showing "JSON validation failed" instead of the real message | ❌ | |
+| Fixed | Bash `grep -f FILE` / `rg -f FILE` not prompting when reading a pattern file outside the working directory | ❌ | |
+| Fixed | Stale subagent worktree cleanup removing worktrees that contain untracked files | ❌ | |
+| Improved | `/agents` with a tabbed layout: Running tab shows live subagents, Library tab adds Run agent and View running instance actions | ❌ | |
+| Improved | Hook errors in the transcript include the first line of stderr for self-diagnosis without `--debug` | ❌ | |
+| Improved | OTEL tracing: interaction spans now correctly wrap full turns under concurrent SDK calls, and headless turns end spans per-turn | ❌ | |
+| Updated | `/claude-api` skill to cover Managed Agents alongside Claude API | ❌ | |
+
+### 🟡 中优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Added | Interactive Google Vertex AI setup wizard accessible from the login screen when selecting "3rd-party platform" | ❌ | |
+| Added | `CLAUDE_CODE_PERFORCE_MODE` env var: Edit/Write/NotebookEdit fail on read-only files with a `p4 edit` hint instead of silently overwriting | ❌ | |
+| Added | LSP: Claude Code now identifies itself to language servers via `clientInfo` in the initialize request | ❌ | |
+| Fixed | Stalled streaming responses timing out instead of falling back to non-streaming mode | ❌ | |
+| Fixed | 429 retries burning all attempts in ~13s when server returns a small `Retry-After` — exponential backoff now applies as minimum | ❌ | |
+| Fixed | Managed-settings allow rules remaining active after an admin removed them, until process restart | ❌ | |
+| Fixed | File-edit diffs disappearing from the UI on `--resume` when edited file was larger than 10KB | ❌ | |
+| Fixed | Several `/resume` picker issues: `--resume <name>` opening uneditable, filter reload wiping search state, empty list swallowing arrow keys, cross-project staleness, task-status text replacing conversation summaries | ❌ | |
+| Fixed | `/export` not honoring absolute paths and `~`, and silently rewriting user-supplied extensions to `.txt` | ❌ | |
+| Fixed | `/effort max` being denied for unknown or future model IDs | ❌ | |
+| Fixed | Slash command picker breaking when a plugin's frontmatter `name` is a YAML boolean keyword | ❌ | |
+| Fixed | `DISABLE_AUTOUPDATER` not fully suppressing the npm registry version check and symlink modification on npm-based installs | ❌ | |
+| Fixed | Remote Control permission handler entries retained for the lifetime of the session (memory leak) | ❌ | |
+| Fixed | `sandbox.network.allowMachLookup` not taking effect on macOS | ❌ | |
+| Improved | `/resume` filter hint labels; added project/worktree/branch names in the filter indicator | ❌ | |
+| Improved | `/reload-plugins` to pick up plugin-provided skills without requiring a restart | ❌ | |
+| Improved | Accept Edits mode auto-approves filesystem commands prefixed with safe env vars or process wrappers | ❌ | |
+| Improved | Vim mode: `j`/`k` in NORMAL mode navigate history and select the footer pill at the input boundary | ❌ | |
+| Improved | Transcript entries carry final token usage instead of streaming placeholders | ❌ | |
+| Fixed | `CLAUDE_CODE_MAX_CONTEXT_TOKENS` to honor `DISABLE_COMPACT` when it is set | ❌ | |
+| Changed | Dropped `/compact` hints when `DISABLE_COMPACT` is set | ❌ | |
+
+### 🟢 低优先级
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | Capital letters being dropped to lowercase on xterm and VS Code integrated terminal when the kitty keyboard protocol is active | ❌ | |
+| Fixed | macOS text replacements deleting the trigger word instead of inserting the substitution | ❌ | |
+| Fixed | Copying wrapped URLs in fullscreen mode inserting spaces at line breaks | ❌ | |
+| Fixed | Rate-limit upsell text being hidden after message remounts | ❌ | |
+| Fixed | Feedback survey rendering when dismissed | ❌ | |
+| Improved | Footer indicators (Focus, notifications) stay on the mode-indicator row instead of wrapping at narrow terminal widths | ❌ | |
+
+### ➖ 不适用
+
+| 类型 | 描述 | 状态 | 备注 |
+|------|------|------|------|
+| Fixed | Voice mode leaking dozens of space characters into the input when re-holding push-to-talk key while previous transcript is still processing | ➖ | voice 功能 |
+| Fixed | [VSCode] False-positive "requires git-bash" error on Windows when `CLAUDE_CODE_GIT_BASH_PATH` is set or Git is installed at a default location | ➖ | VSCode/Windows 专属 |
 
 ---
 
