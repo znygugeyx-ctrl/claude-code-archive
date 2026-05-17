@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "bun run build.ts",
-    "start": "CLAUDE_CODE_USE_BEDROCK=1 bun dist/cli.js",
+    "start": "bun dist/cli.js",
+    "start:d": "bun dist/cli.js --dangerously-skip-permissions",
     "lint": "bunx @biomejs/biome lint ./src",
     "lint:fix": "bunx @biomejs/biome lint --fix ./src",
     "format": "bunx @biomejs/biome format ./src",
